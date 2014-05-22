@@ -6,9 +6,9 @@ The following repository contains the file for the Peer Project of Coursera's "G
 The repository consists of the following files: 
 ----------------------------------------------
 
-run_analysis.R  - the R script combining and cleaning the raw data of the Smartphone Dataset
-CodeBook.md     - a description of the data and variables and an explanation of the internal workings of the script
-README.md       - this file, explaning how to run the analysis. 
+* run_analysis.R  - the R script combining and cleaning the raw data of the Smartphone Dataset
+* CodeBook.md     - a description of the data and variables and an explanation of the internal workings of the script
+* README.md       - this file, explaning how to run the analysis. 
 
 
 How to run the script
