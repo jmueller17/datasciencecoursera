@@ -1,10 +1,5 @@
 
 
-setwd("/run/media/joerg/zeitzahm/work/stats/moocstuff/CourseraDataSciSpecial/C3-GetCleanData/pproject/")
-
-setwd("/mnt/DATA/work/stats/moocstuff/CourseraDataSciSpecial/C3-GetCleanData/pproject")
-
-
 
 ###############
 # Instructions:
