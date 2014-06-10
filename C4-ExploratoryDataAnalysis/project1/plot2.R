@@ -1,18 +1,19 @@
+#time series library
 library(zoo)
 
 
 #prompt for the file 
 filePath <- file.choose();
 
-#read only the rows for the given dates 1/2/2007 and 2/2/2007
+#read only the rows for the given dates 1/2/2007 and 2/2/2007. 
+#the nr. of rows to skip and read was read in a previous step. Avoids reading
+#the whole data each time.
 df <- read.csv(filePath, 
                sep=";", 
                skip=66636, 
                nrows=2880,
                col.names=colnames(read.csv(filePath, sep=";", header=T, nrow=1)))
 
-#convert to numeric
-df$Global_active_power <- as.numeric(as.character(df$Global_active_power))
 
 #combine Date and time columns into date time string
 df$DateTime <- paste(as.character(df$Date), as.character(df$Time))
