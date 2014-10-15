@@ -1,0 +1,105 @@
+---
+title: 'Reproducible Research: Peer Assessment 1'
+output:
+  html_document:
+    keep_md: yes
+    theme: journal
+---
+
+
+
+## Loading and preprocessing the data
+
+First, let's read the CSV file into memory, assuming the activity.csv file is in your current working directory
+
+
+```{r}
+df <- read.csv("activity.csv", header=T, sep=",")
+```
+
+and take a look at it, including performing some basic checks: number of rows, variables and complete rows:
+
+```{r}
+head(df)
+str(df)
+
+nrows <- nrow(df)
+ncols <- ncol(df)
+nas   <- sum(is.na(df))
+compl <- sum(complete.cases(df))
+```
+
+The number of rows in the activity data set is `r nrows` over `r ncol(df)` variables. Overall there are  `r nas` incomplete cases containing NAs, leaving `r compl` complete rows. 
+
+We convert the date from level to character. 
+
+```{r}
+df$date <- as.character(df$date)
+```
+
+and get rid of rows containing NAs 
+
+```{r}
+df <- df[complete.cases(df),]; 
+```
+
+
+
+## What is mean total number of steps taken per day?
+
+First, aggregate the steps taken by day and calculate its mean and median
+
+```{r}
+df.stepsDay <- aggregate(df$steps, by=list(df$date), FUN=sum)
+df.stepsDayMean <- mean(df.stepsDay$x)
+df.stepsDayMedian <- median(df.stepsDay$x)
+```
+
+The mean of steps taken per day is `r df.stepsDayMean`. The median of steps taken per day is `r df.stepsDayMedian`. 
+
+Now we can also draw the total step count for each day as historgram: 
+
+```{r }
+hist(df.stepsDay$x, 
+     breaks=20,
+     main="Total number of steps take per day", 
+     col="red", 
+     xlab="Steps taken")
+```
+
+
+
+## What is the average daily activity pattern?
+
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis)
+and the average number of steps taken, averaged across all days (y-axis). 
+
+In other words: what is the average number of steps taken for each intervall across all days?! Intervall IDs repeat on each day. 
+
+```{r}
+df.stepsInterval <- aggregate(df$steps, by=list(df$interval), FUN=mean)
+
+plot( x=df.stepsInterval[,1], 
+      y=df.stepsInterval[,2], 
+      type="l",
+      col="red",
+      main="Average steps taken per Interval",
+      ylab="Steps taken", 
+      xlab="Interval")
+```
+
+
+2. Which 5-minute interval, on average across all the days in the dataset,
+contains the maximum number of steps?
+
+```{r}
+df.stepsInterval[which.max(df.stepsInterval[,2]),1]
+```
+
+
+
+## Imputing missing values
+
+
+
+## Are there differences in activity patterns between weekdays and weekends?
