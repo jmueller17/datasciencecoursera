@@ -68,7 +68,7 @@ df.stepsDayMean <- mean(df.stepsDay$x, na.rm=T)
 df.stepsDayMedian <- median(df.stepsDay$x, na.rm=T)
 ```
 
-The mean of steps taken per day is 1.0766 &times; 10<sup>4</sup>. The median of steps taken per day is 10765. 
+The mean of steps taken per day is 10766. The median of steps taken per day is 10765. 
 
 Now we can also draw the total step count for each day as historgram: 
 
@@ -88,9 +88,7 @@ hist(df.stepsDay$x,
 ## What is the average daily activity pattern?
 
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis)
-and the average number of steps taken, averaged across all days (y-axis). 
-
-In other words: what is the average number of steps taken for each intervall across all days (note that intervall IDs repeat every 24h). 
+and the average number of steps taken, averaged across all days (y-axis). In other words: what is the average number of steps taken for each intervall across all days (note that intervall IDs repeat every 24h). 
 
 
 ```r
@@ -161,12 +159,12 @@ hist(df.clean.stepsDay$x,
 
 ![plot of chunk unnamed-chunk-11](./PA1_files/figure-html/unnamed-chunk-11.png) 
 
-There are no differences between the mean and median of the two datasets. First, because the calculation of the mean/media values of the original dataframe removed the NA values. Second, because the missing values filled in are based on the mean values of the interval, i.e. new newly calculated mean can't differ much from the original. There is no big difference between mean/media steps between the two dataframes.  
+There are no big differences between the mean and median of the two datasets. First, because the calculation of the mean/media values of the original dataframe can only be calculated by removing the NA values first. Second, because the missing values filled in are based on the mean values of the interval, i.e. new newly calculated mean basically is drawn closer to the mean values of the first dataset anyway. There is no big difference between mean/media steps between the two dataframes.  
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-Let's add first an extra column to the dataframe indicating if the given date is a weekday or not and then create two subsets, one containing the data for weekends and the other for weekdays. 
+Let's add first an extra column to the dataframe indicating if the given date is a weekday or not and then create two subsets, one containing the data for weekends and the other for weekdays. We also need to convert the date from class character to class Date in order for the weekday/end function to do its job. 
 
 
 ```r
@@ -177,7 +175,7 @@ df.weekend <- df.clean[df.clean$weekend == TRUE,]
 df.weekday <- df.clean[df.clean$weekend == FALSE,]
 ```
 
-Finally, calculate the average of steps for each interval for the two subsets and draw the graphics. As it is readily apparent, the pattern of average steps taken is different. Whereas weekend steps are more equally distributed across all intervals, the weekdays have a realively early peak (sports?) and then become lower for the rest of the day. There is more walking during the weekend, while the lower rates during the weekday could be interpreted as reflecting sitting at work or school? 
+Finally, calculate the average of steps for each interval for the two subsets and draw the graphics. As it is readily apparent, the pattern of steps taken is different: whereas the mean of weekend steps are more equally distributed across all intervals, the weekdays have a realively early peak (sports?) and then become lower for the rest of the day. The relatively lower rates during a large part of the weekday could be interpreted as reflecting sitting at work or school. 
 
 
 ```r
