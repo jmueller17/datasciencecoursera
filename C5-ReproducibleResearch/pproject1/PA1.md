@@ -175,7 +175,7 @@ df.weekend <- df.clean[df.clean$weekend == TRUE,]
 df.weekday <- df.clean[df.clean$weekend == FALSE,]
 ```
 
-Finally, calculate the average of steps for each interval for the two subsets and draw the graphics. As it is readily apparent, the pattern of steps taken is different: whereas the mean of weekend steps are more equally distributed across all intervals, the weekdays have a realively early peak (sports?) and then become lower for the rest of the day. The relatively lower rates during a large part of the weekday could be interpreted as reflecting sitting at work or school. 
+Finally, calculate the average of steps for each interval for the two subsets and draw the graphics. 
 
 
 ```r
@@ -203,7 +203,8 @@ plot( x=df.weekday.steps[,1],
 
 ![plot of chunk unnamed-chunk-13](./PA1_files/figure-html/unnamed-chunk-13.png) 
 
-As the graphics show, there is a difference between weekdays and weekends. 
+As the graphics show, the pattern of steps taken is different: whereas the mean of weekend steps are more equally distributed across all intervals, the weekdays have a realively early peak (sports?) and then become lower for the rest of the day. The relatively lower rates during a large part of the weekday could be interpreted as reflecting sitting at work or school. 
+
 
 
 
