@@ -81,7 +81,7 @@ hist(df.stepsDay$x,
      xlab="Steps taken")
 ```
 
-![plot of chunk unnamed-chunk-5](./PA1_files/figure-html/unnamed-chunk-5.png) 
+![plot of chunk unnamed-chunk-5](./PA1_template_files/figure-html/unnamed-chunk-5.png) 
 
 
 
@@ -103,7 +103,7 @@ plot( x=df.stepsInterval[,1],
       xlab="Interval")
 ```
 
-![plot of chunk unnamed-chunk-6](./PA1_files/figure-html/unnamed-chunk-6.png) 
+![plot of chunk unnamed-chunk-6](./PA1_template_files/figure-html/unnamed-chunk-6.png) 
 
 
 2. Which 5-minute interval, on average across all the days in the dataset,
@@ -157,7 +157,7 @@ hist(df.clean.stepsDay$x,
      xlab="Steps taken")
 ```
 
-![plot of chunk unnamed-chunk-11](./PA1_files/figure-html/unnamed-chunk-11.png) 
+![plot of chunk unnamed-chunk-11](./PA1_template_files/figure-html/unnamed-chunk-11.png) 
 
 There are no big differences between the mean and median of the two datasets. First, because the calculation of the mean/media values of the original dataframe can only be calculated by removing the NA values first. Second, because the missing values filled in are based on the mean values of the interval, i.e. new newly calculated mean basically is drawn closer to the mean values of the first dataset anyway. There is no big difference between mean/media steps between the two dataframes.  
 
@@ -201,7 +201,7 @@ plot( x=df.weekday.steps[,1],
       xlab="Interval ID")
 ```
 
-![plot of chunk unnamed-chunk-13](./PA1_files/figure-html/unnamed-chunk-13.png) 
+![plot of chunk unnamed-chunk-13](./PA1_template_files/figure-html/unnamed-chunk-13.png) 
 
 As the graphics show, the pattern of steps taken is different: whereas the mean of weekend steps are more equally distributed across all intervals, the weekdays have a realively early peak (sports?) and then become lower for the rest of the day. The relatively lower rates during a large part of the weekday could be interpreted as reflecting sitting at work or school. 
 
