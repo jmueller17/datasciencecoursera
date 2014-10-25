@@ -2,82 +2,233 @@
 title: 'Reproducible Research: Peer Assessment 2'
 author: "Jörg Mülller"
 date: "10/20/2014"
-output: html_document
+output:
+  html_document:
+    keep_md: yes
+    theme: journal
 ---
 
+# US Weather Storm Data Analysis
 
-1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
 
-2. Across the United States, which types of events have the greatest economic consequences?
-
-## US Storm Data Analysis
-
-Synopsis 
---------
-Immediately after the title, there should be a synopsis which describes and summarizes your analysis in at most 10 complete sentences.
+## Synopsis 
+US Weather Storm data has been collected since the 1950s. We analyze the most harmful weather events with respect to population health and economic damage. Data has not been very consistently recorded, especially concering the event type description. A detailed code section shows how weather events have been grouped. As a result, the three most damaging weather events for population health are (1) tornado, (2) heat and (3) flood. The three most damaging events on an economic scale are (1) flood, (2) tornado, (3) hurriance for property damange and (1) heat, (2) flood, (3) tornado for crop damage. Regarding historic trends, it seems that although there is only a slight increase in the overall economic damage, weather events become more extreme with several high impact events in recent decades. 
 
 
 ## Data Processing
 
-Read the data file and take a look at its structure: 
-```{r, echo=TRUE, cache=TRUE}
+Read the data file and take a look at the event type variable. 
 
+```{r readdata, echo=TRUE, cache=TRUE}
 df <- read.csv('repdata_data_StormData.csv', header=T, sep=",")
-
-str(df)
-head(df)
-
-nrow(df)
+levels(df$EVTYPE)[seq(1,900,20)]
 ```
+As can be readily seen from the small sample of event type entries, there are hundreds of different event types, some of them not indicating any weather related event at all, such as the "Summary" entries for specific dates or the "?" entries. In order to clean the data and reduce the number of events, several steps will be carried out: 
 
-Convert the EVTYPE variable to lowercase and group most of them into high-level event types. This was done by hand and is probably not very accurate, but helps to reduce the >900 event types into more manageable clusters. 
+1. Delete rows with unknown event type 
+2. Convert all entries to lowercase
+3. Group them according to the overarching term discarding especially the qualifiying attributes such as "excessive", "extreme" or numeric qualifiers to distinguish for example the severity of "hail". This step is carried out by regular expression matching in order to also catch spelling mistakes or plurals. Overall, this cleaning step  will reduce the number of events from 985 to 20. The grouping of the event type variable is not based on any metereological expert decisions and certainly could be improved. The following code shows how event types have been grouped: 
 
-```{r, echo=TRUE, cache=TRUE}
+
+```{r groupevents, echo=TRUE, cache=TRUE}
+
+df <- df[!(df$EVTYPE=="?"),]
 
 df$evtype <- tolower(df[,8])
 
-df[grep("torn*", df$evtype),]$evtype <- c("tornado")
+df[grep("torn*|funnel*|microburst", df$evtype),]$evtype <- c("tornado")
 df[grep("thunderstorm*|tstm*|storm*|downburst", df$evtype),]$evtype <- c("thunderstorm")
+df[grep("hurricane*|typh*|tropical depression", df$evtype),]$evtype <- c("hurricane")
 df[grep("blizzard*", df$evtype),]$evtype <- c("blizzard")
 df[grep("flood*|water*|surf*|swells*|tsunami*|fldg|fld|stream", df$evtype),]$evtype <- c("flood")
 df[grep("snow*", df$evtype),]$evtype <- c("snow")
 df[grep("*wind*|wnd", df$evtype),]$evtype <- c("wind")
-df[grep("cold*|frost*|chill*|freez*|glaze*|ice*|low*|cool*", df$evtype),]$evtype <- c("cold")
-df[grep("rain*|wet*|percipi*|preci*|shower*", df$evtype),]$evtype <- c("rain")
-df[grep("dry*|heat*|drought*|high*|warm*|dust*|hot", df$evtype),]$evtype <- c("heat")
+df[grep("cold*|frost*|chill*|freez*|glaze*|ice|icy|low|cool*", df$evtype),]$evtype <- c("cold")
+df[grep("rain*|wet|percipi*|preci*|shower*", df$evtype),]$evtype <- c("rain")
+df[grep("dry|heat*|driest|drought*|high*|warm*|dust*|hot", df$evtype),]$evtype <- c("heat")
 df[grep("hail*|sleet*", df$evtype),]$evtype <- c("hail")
-df[grep("hurricane*|typh*", df$evtype),]$evtype <- c("hurricane")
 df[grep("light*|lign*", df$evtype),]$evtype<- c("lightning")
 df[grep("*slide*", df$evtype),]$evtype<- c("slide")
-df[grep("*fire*|smoke*", df$evtype),]$evtype<- c("fire")
+df[grep("*fire|smoke*", df$evtype),]$evtype<- c("fire")
 df[grep("avalanc*", df$evtype),]$evtype<- c("avalanche")
-df[grep("fog*|vog", df$evtype),]$evtype<- c("fog")
-df[grep("dam*", df$evtype),]$evtype<- c("dam break")
-df[grep("rip*", df$evtype),]$evtype<- c("rip current")
+df[grep("fog|vog|cloud", df$evtype),]$evtype<- c("fog")
+df[grep("dam ", df$evtype),]$evtype<- c("dam break")
 df[grep("erosi*", df$evtype),]$evtype<- c("erosion")
-df[grep("rogue|rough", df$evtype),]$evtype<- c("rough sea")
-df[grep("apache|summary*|excessive|funnel*|gustnado|hypothermia|landslump|landspout|marine*|mild|monthly|none|other|record*|red|turbulence|record|urban*|way*", df$evtype),]$evtype<- c("other")
+df[grep("rogue|rough|rip", df$evtype),]$evtype<- c("sea")
+df[grep("apache|seiche|drowning|cloud|floyd|rotating|volcanic|summary*|excessive|gustnado|hypothermia|landslump|landspout|wayterspout|no severe|marine*|mild|monthly|none|other|record*|red|turbulence|urban*", df$evtype),]$evtype<- c("other")
 
 ```
 
 After this grouping, the `r nrow(df)` rows of the dataset are distributed across the following categories: 
 
-```{r, echo=TRUE}
+```{r, echo=TRUE, cache=TRUE}
 table(df$evtype)
+```
+
+The subsequent steps consists of preparing the "property damange" and "population health" variables in order to answer the questions regarding the most harmful events to population health and greatest economic consequences. 
+
+
+### Property damage
+Property damange is split between property and crop damange; in both cases two variables need to be combined in order to calculte the actual damage: PROPDMG contains a numeric value that needs to multiplied with its corresponding exponential value contained in PROPDMGEXP. Closer examination of PROPDMGEXP gives the following entries: 
+
+```{r, echo=TRUE}
+
+levels(df$PROPDMGEXP)
+
+```
+
+The character entries will be converted to numeric according to the following table:
+
+* H or h = 2 (hundred = 10^2) 
+* K or k = 3 (thousand = 10^3) 
+* M or m = 6 (million = 10^6) 
+* B or b = 9 (billion = 10^9) 
+
+What more, the remaining characters "+", "?", "-", and "" will be converted to the exponent 0. The meaning of the characters is not documented in the available data handbooks. Therefore, converting them to 10^0=1 will leave the actual damage numeric value unaffected. Overall, the total damage will be calculated by: PROPDMG * 10^PROPDMGEXP. 
+
+```{r sumpropdmb, echo=TRUE, cache=TRUE}
+df$propdmgexp <- gsub("[-|?|+]","0",as.character(df$PROPDMGEXP) )
+df$propdmgexp <- gsub("[H|h]","2",as.character(df$propdmgexp) )
+df$propdmgexp <- gsub("[K|k]","3",as.character(df$propdmgexp) )
+df$propdmgexp <- gsub("[M|m]","6",as.character(df$propdmgexp) )
+df$propdmgexp <- gsub("[B|b]","9",as.character(df$propdmgexp) )
+df[df$propdmgexp=="",]$propdmgexp <- "0"
+
+df$propdmgtot <- df$PROPDMG * 10^as.integer(df$propdmgexp)
+
+```
+
+
+Finally, we aggregate the total damange for each event type variable. 
+```{r grouppropdmg, echo=TRUE}
+propdmgByEvtype <- aggregate(df$propdmgtot ~ df$evtype, FUN=sum)
+names(propdmgByEvtype) <- c("Event", "Amount")
+```
+
+
+### Crop Damage
+The same procedure applies for preparing and calculating the crop damage: 
+```{r sumcropdmg, echo=TRUE, cache=TRUE}
+df$cropdmgexp <- gsub("[?|+]","0",as.character(df$CROPDMGEXP) )
+df$cropdmgexp <- gsub("[K|k]","3",as.character(df$cropdmgexp) )
+df$cropdmgexp <- gsub("[M|m]","6",as.character(df$cropdmgexp) )
+df$cropdmgexp <- gsub("[B|b]","9",as.character(df$cropdmgexp) )
+
+df$cropdmgtot <- df$CROPDMG * 10^as.integer(df$cropdmgexp)
+```
+
+The total crop damange for each event type is aggregated. 
+```{r groupcropdmg, echo=TRUE, cache=TRUE}
+cropdmgByEvtype <- aggregate(df$cropdmgtot ~ df$evtype, FUN=sum)
+names(cropdmgByEvtype) <- c("Event", "Amount")
+```
+
+
+### Impact on population health (injuries + fatalities)
+Both, the fatalities and injuries variables of the dataset are numeric and can be used straight away. For both cases, the counts are aggregated over the event types. 
+
+```{r grouppophealth, echo=TRUE, cache=TRUE}
+pophealth <- aggregate(df$FATALITIES ~ df$evtype, FUN=sum)
+pophealth$Injuries <- aggregate(df$INJURIES ~ df$evtype, FUN=sum)[,2]
+names(pophealth) <- c("Event", "Deaths", "Injuries")
+```
+
+### Exploring historical trends
+In order to explore the trends of the damages, injuries and fatalities over the years, we convert the beginning date (BGN_DATE) to an object of type "Date" and group "property damage", "crop damage", "injuries" and "fatalities" for all event types.
+
+```{r trends, echo=TRUE, cache=TRUE}
+df$DateTime <- strptime(df$BGN_DATE, "%m/%d/%Y %H:%M:%S")
+df$Year <- format(df$DateTime, "%Y")
+trend.p <- aggregate(df$propdmgtot, by=list(df$evtype, df$Year), FUN=sum)
+trend.c <- aggregate(df$cropdmgtot, by=list(df$evtype, df$Year), FUN=sum)
+trend.f <- aggregate(df$FATALITIES, by=list(df$evtype, df$Year), FUN=sum)
+trend.i <- aggregate(df$INJURIES, by=list(df$evtype, df$Year), FUN=sum)
+
+names(trend.p) <- c("event", "year", "damage")
+names(trend.c) <- c("event", "year", "damage")
+names(trend.f) <- c("event", "year", "fatalities")
+names(trend.i) <- c("event", "year", "injuries")
+
 ```
 
 
 
-
 ## Results
-There should be a section titled Results in which your results are presented.
 
-You may have other sections in your analysis, but Data Processing and Results are required.
+### Regarding population health
+Across the United States, which types of events are most harmful with respect to population health? Considering this first question, let's look at the ordered tables for injuries and fatalities per event types: 
 
-The analysis document must have at least one figure containing a plot.
+```{r topinjuries, echo=TRUE, cache=TRUE}
+pophealth[with(pophealth, order(-Injuries)),c(1,3)]
+```
 
-Your analyis must have no more than three figures. Figures may have multiple plots in them (i.e. panel plots), but there cannot be more than three figures total.
+Regarding number of *injuries*, the most harmful events are (1) tornados, (2) heat related weather events, and (3) floods. 
+
+Regarding *fatalities*, the picture is quite similar. The three most harmful events are again (1) tornados, (2) heat, and (3) flooding. Curious is the fact that there are more fatalities through lightning than for example hurricane or heavy winds. 
+```{r topdeaths, echo=TRUE, cache=TRUE}
+pophealth[with(pophealth, order(-Deaths)),c(1,2)]
+```
+
+### Regarding economic damage
+Across the United States, which types of events have the greatest economic consequences? Looking at property damage first, the most harmful events are (1) flooding, (2) tornados and (3) hurricanes. 
+
+```{r toppropdmg, echo=TRUE, cache=TRUE}
+propdmgByEvtype[with(propdmgByEvtype, order(-Amount)), ]
+```
+
+In relation to *crop damage*, it turns out that excessive (1) heat causes the most damage, followed by (2) flooding, (3) tornados and (4) hurricanes. What is also noteworthy are the important economic losses due to hail and cold. 
+```{r topcropdmg, echo=TRUE, cache=TRUE}
+cropdmgByEvtype[with(cropdmgByEvtype, order(-Amount)), ]
+```
+
+
+### Summarizing graphics
+The following graphics represent the property and crop damange: 
+
+```{r sumgraphics, echo=TRUE, fig.width=10}
+
+library(ggplot2)
+library(gridExtra)
+
+p1 <- ggplot(propdmgByEvtype, aes(x=Event, y=Amount)) + geom_bar(stat="identity") + theme(axis.text.x = element_text(angle=30, hjust=1, vjust=1)) + ggtitle("Total Property Damage")
+
+p2 <-ggplot(cropdmgByEvtype, aes(x=Event, y=Amount)) + geom_bar(stat="identity") + theme(axis.text.x = element_text(angle=30, hjust=1, vjust=1)) + ggtitle("Total Crop Damage")
+
+grid.arrange(p1, p2, ncol=2)
+```
+
+And the fatalities and injuries regarding event types. 
+
+```{r, echo=TRUE, fig.width=10}
+
+p3 <- ggplot(pophealth, aes(x=Event, y=Deaths ) ) + geom_bar(stat="identity") + theme(axis.text.x = element_text(angle=30, hjust=1, vjust=1)) + ggtitle("Deaths")
+
+p4 <- ggplot(pophealth, aes(x=Event, y=Injuries ) ) + geom_bar(stat="identity") + theme(axis.text.x = element_text(angle=30, hjust=1, vjust=1)) + ggtitle("Injuries")
+
+grid.arrange(p3, p4, ncol=2)
+
+```
+
+
+Floodings and tornados are among the most damaging weather events in the US, both for property/crop and population health. A final exploration shows eventual historical trends for top three damaging weather events in each category (property, crop, injuries, fatalities).
+
+```{r trendgraphics, echo=TRUE, fig.width=15, fig.height=15}
+
+trend.p <- subset(trend.p, (event=="tornado" | event=="hurricane" | event=="flood"))
+trend.c <- subset(trend.c, (event=="tornado" | event=="heat" | event=="flood"))
+trend.f <- subset(trend.f, (event=="tornado" | event=="heat" | event=="flood"))
+trend.i <- subset(trend.i, (event=="tornado" | event=="heat" | event=="flood"))
+
+p1 <- ggplot(trend.p, aes(x=year, y=damage, colour=event, group=event)) + geom_point()+ geom_smooth(method=lm, se=FALSE) + ggtitle("Property damage")
+p2 <- ggplot(trend.c, aes(x=year, y=damage, colour=event, group=event)) + geom_point()  + ggtitle("Crop damage")
+p3 <- ggplot(trend.f, aes(x=year, y=fatalities, colour=event, group=event)) + geom_point()+ geom_smooth(method=lm, se=FALSE) + ggtitle("Fatalities")
+p4 <- ggplot(trend.i, aes(x=year, y=injuries, colour=event, group=event)) + geom_point() + geom_smooth(method=lm,se=FALSE) + ggtitle("Injuries")
+
+grid.arrange(p1, p2, p3,p4, ncol=1)
+
+```
+
+Interestingly, injuries and fatalities are dropping; a fact probably having to do with better protection (air conditioning against excessive heat) mechanisms and early warning (accurate weather forecasts) in place. Apart from the more precise recording of weather events in more recent history, the property and crop damage show slightly but definite increasing trends. This is especially true for Tornados: whereas in the past they seem to be relatively stable phenomena, the damage caused starts to show increasingly sever peaks in recent decades. 
 
 
 
-You must show all your code for the work in your analysis document. This may make the document a bit verbose, but that is okay. In general, you should ensure that echo = TRUE for every code chunk (this is the default setting in knitr).
