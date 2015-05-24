@@ -1,0 +1,89 @@
+---
+title: "C8 - Machine Learning - Project"
+date: "05/22/2015"
+output: html_document
+---
+
+#Predicting quality of sports exercise from sensor data
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(caret)
+df <- read.csv("data/pml-training.csv")
+test <- read.csv("data/pml-testing.csv")
+```
+
+
+
+
+##Introduction
+The data used for the present exercise can be obtained from  [http://groupware.les.inf.puc-rio.br/har](http://groupware.les.inf.puc-rio.br/har). It consits of 6 subjects performing different physical exercises with sensors attached their belt, forearm, arm, and dumbell. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. The original dataset contains 19622 observations and 160 variables. The training dataset is available [here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv) and the testing dataset is available [here](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv). 
+
+##Method
+The analysis was carried out using the R statistical programming language and RStudio.
+
+
+##Data exploration and preprocessing
+
+Closer examination of the variables reveals that many derived variables (such as skewness and kurtosis) are coded as factors while they should be numeric. When converting those to numeric variables many values are missing and NAs are introduced. Checking the precentage of NAs vs. real values for those variables reveals that most entries are NA; since they contribute little information to the dataset they can be removed. All columns that have more than 90% of NAs are removed from the training dataframe. 
+
+Similar, the X, user_name, timestamp variables are removed since this is information specific to this dataset that should not have an influence on the classification of future sets. 
+
+After cleaning the data, we are left with 52 predictor variables. 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+df <- subset(df, select=c(-X,-user_name, -cvtd_timestamp, -raw_timestamp_part_1, -raw_timestamp_part_2, -new_window, -num_window)) 
+
+#convert factor to numeric. NAs are introduced
+yaw <- grep("^min_yaw|^max_yaw|^amplitude_yaw|^kurtosis_|^skewness_", names(df), value=F)
+for (varname in names(df)[yaw]){
+  df[,varname] <- as.numeric(as.character(df[,varname]))
+}
+
+#take out columns which have more than 19000 NAs 
+df <- df[,which(!apply(df,2,FUN = function(x){ (sum(is.na(x)) > 19000) }))]
+```
+
+In addition, correlations between variables were checked. However, only very few variables are highly corrlated >.90 and hence they were not removed. Similarily, a PCA analysis was carried out to see if the variance of the dataset could be reduced substantially with few principal components; however, more than 7 components are need to capture more than 90% of the variance and this approach was not further pursued.  
+
+```{r, echo=FALSE, message=FALSE}
+corm <- round(cor(df[,-53]),2)
+#corm
+
+pca <- princomp(df[,-53])
+#summary(pca)
+```
+
+
+##Random forest
+The randomForest model was used building 500 trees with 7 variables each time (the number of predictors sampled is suggested to be square root of total number of variables, which is 52. This gives approx 7 to 8 variables in each try). 
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(randomForest)
+library(e1071)
+set.seed(2314)
+f1 <- randomForest(classe~., importance=T, ntree=500, mtry=7, data=df)
+print(f1)
+classAgreement(f1$confusion)
+```
+
+The model has a prediction accuracy of `r round(classAgreement(f1$confusion)$diag,4)` and an OOB estimate of error rate of 0.26%. 
+ 
+ &nbsp; 
+ &nbsp; 
+ 
+The model is used to predict the new classe variable in the new data set: 
+
+```{r}
+fp1 <- predict(f1, newdata=test)
+print(fp1)
+```
+
+
+Submitting the predicted values reaches an accuracy of 100%. 
+
+
+
+
+
+
